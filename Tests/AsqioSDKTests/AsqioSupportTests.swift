@@ -1,5 +1,5 @@
 import XCTest
-@testable import AsqioSupportSDK
+@testable import AsqioSDK
 
 final class AsqioSupportTests: XCTestCase {
 

@@ -3,27 +3,27 @@
 import PackageDescription
 
 let package = Package(
-    name: "AsqioSupportSDK",
+    name: "AsqioSDK",
     platforms: [
         .iOS(.v16),
         .macOS(.v13)
     ],
     products: [
         .library(
-            name: "AsqioSupportSDK",
-            targets: ["AsqioSupportSDK"]
+            name: "AsqioSDK",
+            targets: ["AsqioSDK"]
         ),
     ],
     targets: [
         .target(
-            name: "AsqioSupportSDK",
+            name: "AsqioSDK",
             dependencies: [],
-            path: "Sources/AsqioSupportSDK"
+            path: "Sources/AsqioSDK"
         ),
         .testTarget(
-            name: "AsqioSupportSDKTests",
-            dependencies: ["AsqioSupportSDK"],
-            path: "Tests/AsqioSupportSDKTests"
+            name: "AsqioSDKTests",
+            dependencies: ["AsqioSDK"],
+            path: "Tests/AsqioSDKTests"
         ),
     ]
 )
