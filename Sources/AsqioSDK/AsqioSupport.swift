@@ -22,12 +22,22 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// 3. Push トークンを登録
+/// 3. Push トークンを登録（APNs）
 /// ```swift
 /// func application(_ application: UIApplication,
 ///                  didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
 ///     Task {
 ///         try await AsqioSupport.shared.registerForPushNotifications(token: deviceToken)
+///     }
+/// }
+/// ```
+///
+/// 3b. Push トークンを登録（FCM）
+/// ```swift
+/// Messaging.messaging().token { token, error in
+///     guard let token else { return }
+///     Task {
+///         try await AsqioSupport.shared.registerForPushNotifications(fcmToken: token)
 ///     }
 /// }
 /// ```
@@ -165,13 +175,22 @@ public final class AsqioSupport: @unchecked Sendable {
 
     // MARK: - Push Notifications
 
-    /// Push 通知用にデバイスを登録
-    /// - Parameter token: APNs から取得したデバイストークン
+    /// APNs トークンでデバイスを登録
+    /// - Parameter token: APNs から取得したデバイストークン（Data）
     /// - Returns: 登録されたデバイス情報
     @discardableResult
     public func registerForPushNotifications(token: Data) async throws -> Device {
         let service = try deviceService
-        return try await service.registerDevice(pushToken: token.hexString)
+        return try await service.registerDevice(pushToken: token.hexString, tokenType: .apns)
+    }
+
+    /// FCM トークンでデバイスを登録
+    /// - Parameter fcmToken: Firebase Cloud Messaging から取得したトークン（String）
+    /// - Returns: 登録されたデバイス情報
+    @discardableResult
+    public func registerForPushNotifications(fcmToken: String) async throws -> Device {
+        let service = try deviceService
+        return try await service.registerDevice(pushToken: fcmToken, tokenType: .fcm)
     }
 
     // MARK: - Unread Count
