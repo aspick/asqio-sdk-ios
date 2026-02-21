@@ -46,6 +46,41 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(message.senderType, .operator)
     }
 
+    // MARK: - Topic Tests
+
+    func testTopicDecoding() throws {
+        let json = """
+        {
+            "id": "topic-123",
+            "name": "お支払い"
+        }
+        """
+
+        let decoder = JSONDecoder()
+        let topic = try decoder.decode(Topic.self, from: json.data(using: .utf8)!)
+
+        XCTAssertEqual(topic.id, "topic-123")
+        XCTAssertEqual(topic.name, "お支払い")
+    }
+
+    func testTopicListDecoding() throws {
+        let json = """
+        {
+            "topics": [
+                {"id": "topic-1", "name": "アカウント"},
+                {"id": "topic-2", "name": "お支払い"}
+            ]
+        }
+        """
+
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(TopicListResponse.self, from: json.data(using: .utf8)!)
+
+        XCTAssertEqual(response.topics.count, 2)
+        XCTAssertEqual(response.topics[0].name, "アカウント")
+        XCTAssertEqual(response.topics[1].name, "お支払い")
+    }
+
     // MARK: - Ticket Tests
 
     func testTicketDecoding() throws {
@@ -53,6 +88,7 @@ final class ModelTests: XCTestCase {
         {
             "id": "ticket-123",
             "title": "テストチケット",
+            "topic": {"id": "topic-1", "name": "お支払い"},
             "context": {"screen": "payment", "plan": "pro"},
             "device_info": {
                 "platform": "ios",
@@ -75,6 +111,8 @@ final class ModelTests: XCTestCase {
 
         XCTAssertEqual(ticket.id, "ticket-123")
         XCTAssertEqual(ticket.title, "テストチケット")
+        XCTAssertEqual(ticket.topic?.id, "topic-1")
+        XCTAssertEqual(ticket.topic?.name, "お支払い")
         XCTAssertEqual(ticket.context?["screen"], "payment")
         XCTAssertEqual(ticket.context?["plan"], "pro")
         XCTAssertEqual(ticket.deviceInfo?.platform, "ios")
@@ -87,6 +125,7 @@ final class ModelTests: XCTestCase {
         {
             "id": "ticket-456",
             "title": null,
+            "topic": null,
             "context": null,
             "device_info": null,
             "unread": false,
@@ -102,6 +141,7 @@ final class ModelTests: XCTestCase {
 
         XCTAssertEqual(ticket.id, "ticket-456")
         XCTAssertNil(ticket.title)
+        XCTAssertNil(ticket.topic)
         XCTAssertNil(ticket.context)
         XCTAssertNil(ticket.deviceInfo)
         XCTAssertFalse(ticket.unread)
@@ -205,6 +245,54 @@ final class ModelTests: XCTestCase {
         XCTAssertNotNil(dict["os_version"])
         XCTAssertNotNil(dict["locale"])
         XCTAssertNotNil(dict["timezone"])
+    }
+
+    // MARK: - APIEndpoint Tests
+
+    func testListTopicsEndpoint() {
+        let endpoint = APIEndpoint.listTopics
+
+        XCTAssertEqual(endpoint.path, "/api/v1/topics")
+        XCTAssertEqual(endpoint.method, .get)
+        XCTAssertNil(endpoint.queryItems)
+        XCTAssertNil(endpoint.body)
+    }
+
+    func testCreateTicketWithTopicId() {
+        let deviceInfo = DeviceInfo.current(appVersion: "1.0.0")
+        let endpoint = APIEndpoint.createTicket(
+            message: "テスト",
+            title: "件名",
+            topicId: "topic-123",
+            context: nil,
+            deviceInfo: deviceInfo
+        )
+
+        XCTAssertEqual(endpoint.path, "/api/v1/tickets")
+        XCTAssertEqual(endpoint.method, .post)
+
+        let body = endpoint.body
+        XCTAssertNotNil(body)
+        XCTAssertEqual(body?["message"] as? String, "テスト")
+        XCTAssertEqual(body?["title"] as? String, "件名")
+        XCTAssertEqual(body?["topic_id"] as? String, "topic-123")
+    }
+
+    func testCreateTicketWithoutTopicId() {
+        let deviceInfo = DeviceInfo.current(appVersion: "1.0.0")
+        let endpoint = APIEndpoint.createTicket(
+            message: "テスト",
+            title: nil,
+            topicId: nil,
+            context: nil,
+            deviceInfo: deviceInfo
+        )
+
+        let body = endpoint.body
+        XCTAssertNotNil(body)
+        XCTAssertEqual(body?["message"] as? String, "テスト")
+        XCTAssertNil(body?["title"])
+        XCTAssertNil(body?["topic_id"])
     }
 
     // MARK: - Data Extension Tests

@@ -12,10 +12,13 @@ enum HTTPMethod: String {
 enum APIEndpoint {
     // MARK: - Tickets
     case listTickets(page: Int, perPage: Int)
-    case createTicket(message: String, title: String?, context: [String: String]?, deviceInfo: DeviceInfo)
+    case createTicket(message: String, title: String?, topicId: String?, context: [String: String]?, deviceInfo: DeviceInfo)
     case getTicket(id: String)
     case markAsRead(ticketId: String)
     case unreadCount
+
+    // MARK: - Topics
+    case listTopics
 
     // MARK: - Messages
     case listMessages(ticketId: String, page: Int, perPage: Int)
@@ -31,6 +34,8 @@ enum APIEndpoint {
         switch self {
         case .listTickets, .createTicket:
             return "/api/v1/tickets"
+        case .listTopics:
+            return "/api/v1/topics"
         case .getTicket(let id):
             return "/api/v1/tickets/\(id)"
         case .markAsRead(let ticketId):
@@ -53,7 +58,7 @@ enum APIEndpoint {
     /// HTTP メソッド
     var method: HTTPMethod {
         switch self {
-        case .listTickets, .getTicket, .unreadCount, .listMessages:
+        case .listTickets, .getTicket, .unreadCount, .listMessages, .listTopics:
             return .get
         case .createTicket, .markAsRead, .postMessage, .registerDevice:
             return .post
@@ -85,13 +90,16 @@ enum APIEndpoint {
     /// リクエストボディ
     var body: [String: Any]? {
         switch self {
-        case .createTicket(let message, let title, let context, let deviceInfo):
+        case .createTicket(let message, let title, let topicId, let context, let deviceInfo):
             var body: [String: Any] = [
                 "message": message
             ]
             body.merge(deviceInfo.toDictionary()) { _, new in new }
             if let title = title {
                 body["title"] = title
+            }
+            if let topicId = topicId {
+                body["topic_id"] = topicId
             }
             if let context = context {
                 body["context"] = context

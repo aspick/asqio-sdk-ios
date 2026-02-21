@@ -30,18 +30,27 @@ public actor TicketService {
     /// - Parameters:
     ///   - message: 初回メッセージ
     ///   - title: タイトル（省略時は初回メッセージから自動生成）
+    ///   - topicId: トピック ID（任意）
     ///   - context: コンテキスト（key-value）
     ///   - deviceInfo: 端末情報
     /// - Returns: 作成されたチケット
     public func createTicket(
         message: String,
         title: String? = nil,
+        topicId: String? = nil,
         context: [String: String]? = nil,
         deviceInfo: DeviceInfo = .current()
     ) async throws -> Ticket {
         return try await client.request(
-            .createTicket(message: message, title: title, context: context, deviceInfo: deviceInfo)
+            .createTicket(message: message, title: title, topicId: topicId, context: context, deviceInfo: deviceInfo)
         )
+    }
+
+    /// トピック一覧を取得
+    /// - Returns: アクティブなトピック一覧（表示順）
+    public func listTopics() async throws -> [Topic] {
+        let response: TopicListResponse = try await client.request(.listTopics)
+        return response.topics
     }
 
     /// チケット詳細を取得

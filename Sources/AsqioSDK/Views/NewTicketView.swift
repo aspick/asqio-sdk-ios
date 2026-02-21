@@ -35,6 +35,17 @@ public struct NewTicketView: View {
     public var body: some View {
         VStack(spacing: 0) {
             Form {
+                if !viewModel.topics.isEmpty {
+                    Section {
+                        Picker("トピック", selection: $viewModel.selectedTopicId) {
+                            Text("選択しない").tag(String?.none)
+                            ForEach(viewModel.topics) { topic in
+                                Text(topic.name).tag(Optional(topic.id))
+                            }
+                        }
+                    }
+                }
+
                 Section {
                     TextField("件名（省略可）", text: $viewModel.title)
                 }
@@ -92,6 +103,9 @@ public struct NewTicketView: View {
                 Text(error.localizedDescription)
             }
         }
+        .task {
+            await viewModel.loadTopics()
+        }
         .onAppear {
             isMessageFocused = true
         }
@@ -121,6 +135,8 @@ public struct NewTicketView: View {
 final class NewTicketViewModel: ObservableObject {
     @Published var title = ""
     @Published var message = ""
+    @Published var selectedTopicId: String?
+    @Published var topics: [Topic] = []
     @Published var isSubmitting = false
     @Published var error: AsqioError?
     @Published var showError = false
@@ -135,6 +151,14 @@ final class NewTicketViewModel: ObservableObject {
         self.ticketService = ticketService
     }
 
+    func loadTopics() async {
+        do {
+            topics = try await ticketService.listTopics()
+        } catch {
+            // トピック取得失敗時はトピック選択なしで続行
+        }
+    }
+
     func createTicket(context: [String: String]?) async -> Ticket? {
         let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedMessage.isEmpty else { return nil }
@@ -146,6 +170,7 @@ final class NewTicketViewModel: ObservableObject {
             let ticket = try await ticketService.createTicket(
                 message: trimmedMessage,
                 title: titleToSend.isEmpty ? nil : titleToSend,
+                topicId: selectedTopicId,
                 context: context
             )
             isSubmitting = false
