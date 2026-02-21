@@ -21,6 +21,11 @@ struct TicketListResponse: Codable {
     let meta: PaginationMeta
 }
 
+/// トピック一覧レスポンス
+struct TopicListResponse: Codable {
+    let topics: [Topic]
+}
+
 /// メッセージ一覧レスポンス
 struct MessageListResponse: Codable {
     let messages: [Message]

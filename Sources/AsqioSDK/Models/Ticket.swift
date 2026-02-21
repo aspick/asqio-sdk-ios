@@ -4,6 +4,7 @@ import Foundation
 public struct Ticket: Identifiable, Codable, Sendable, Equatable {
     public let id: String
     public let title: String?
+    public let topic: Topic?
     public let context: [String: String]?
     public let deviceInfo: TicketDeviceInfo?
     public let unread: Bool
@@ -14,6 +15,7 @@ public struct Ticket: Identifiable, Codable, Sendable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id
         case title
+        case topic
         case context
         case deviceInfo = "device_info"
         case unread
@@ -25,6 +27,7 @@ public struct Ticket: Identifiable, Codable, Sendable, Equatable {
     public init(
         id: String,
         title: String?,
+        topic: Topic? = nil,
         context: [String: String]?,
         deviceInfo: TicketDeviceInfo?,
         unread: Bool,
@@ -34,6 +37,7 @@ public struct Ticket: Identifiable, Codable, Sendable, Equatable {
     ) {
         self.id = id
         self.title = title
+        self.topic = topic
         self.context = context
         self.deviceInfo = deviceInfo
         self.unread = unread

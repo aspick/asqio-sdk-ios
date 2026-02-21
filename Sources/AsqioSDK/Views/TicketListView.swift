@@ -154,6 +154,12 @@ private struct TicketRowView: View {
                     }
                 }
 
+                if let topicName = ticket.topic?.name {
+                    Text(topicName)
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+
                 Text(ticket.updatedAt, style: .relative)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -242,6 +248,7 @@ final class TicketListViewModel: ObservableObject {
             ticket = Ticket(
                 id: ticket.id,
                 title: ticket.title,
+                topic: ticket.topic,
                 context: ticket.context,
                 deviceInfo: ticket.deviceInfo,
                 unread: false,
